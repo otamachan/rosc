@@ -14,19 +14,19 @@ static void on_msg(const void* data, size_t size, const rosc_msg_info_t* info, v
   const char* kind = (const char*)user;
   g_received++;
   if (strcmp(kind, "twist") == 0) {
-    rosc_twist_t t;
-    if (!rosc_deserialize_twist(data, size, &t)) return (void)printf("bad twist\n");
+    rosc_geometry_msgs_Twist_t t;
+    if (!rosc_deserialize_geometry_msgs_Twist(data, size, &t)) return (void)printf("bad twist\n");
     printf("twist: %g %g %g %g %g %g\n", t.linear[0], t.linear[1], t.linear[2], t.angular[0], t.angular[1],
            t.angular[2]);
   } else if (strcmp(kind, "scan") == 0) {
-    rosc_laser_scan_t s;
-    if (!rosc_deserialize_laser_scan(data, size, &s)) return (void)printf("bad scan\n");
+    rosc_sensor_msgs_LaserScan_t s;
+    if (!rosc_deserialize_sensor_msgs_LaserScan(data, size, &s)) return (void)printf("bad scan\n");
     printf("scan: frame=%.*s n=%zu r0=%g angle_min=%g\n", (int)s.frame_id_len, s.frame_id, s.ranges_len,
            s.ranges_len ? rosc_float_at(s.ranges, 0) : 0.0f, s.angle_min);
   } else if (strcmp(kind, "string") == 0) {
     const char* str;
     size_t len;
-    if (!rosc_deserialize_string(data, size, &str, &len)) return (void)printf("bad string\n");
+    if (!rosc_deserialize_std_msgs_String(data, size, &str, &len)) return (void)printf("bad string\n");
     printf("string: %.*s\n", (int)len, str);
   } else {
     printf("any: type=%s md5=%s size=%zu latching=%d from=%s\n", info->type, info->md5sum, size, info->latching,
@@ -43,9 +43,9 @@ int main(int argc, char** argv) {
   const char* kind = argv[2];
   int count = argc > 3 ? atoi(argv[3]) : 1;
   const char *type = "*", *md5 = "*";
-  if (strcmp(kind, "string") == 0) type = ROSC_STD_MSGS_STRING_TYPE, md5 = ROSC_STD_MSGS_STRING_MD5;
-  if (strcmp(kind, "twist") == 0) type = ROSC_GEOMETRY_MSGS_TWIST_TYPE, md5 = ROSC_GEOMETRY_MSGS_TWIST_MD5;
-  if (strcmp(kind, "scan") == 0) type = ROSC_SENSOR_MSGS_LASER_SCAN_TYPE, md5 = ROSC_SENSOR_MSGS_LASER_SCAN_MD5;
+  if (strcmp(kind, "string") == 0) type = rosc_std_msgs_String.type, md5 = rosc_std_msgs_String.md5sum;
+  if (strcmp(kind, "twist") == 0) type = rosc_geometry_msgs_Twist.type, md5 = rosc_geometry_msgs_Twist.md5sum;
+  if (strcmp(kind, "scan") == 0) type = rosc_sensor_msgs_LaserScan.type, md5 = rosc_sensor_msgs_LaserScan.md5sum;
 
   rosc_node_options_t opts = {0};
   opts.args = (const char* const*)argv;

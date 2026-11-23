@@ -86,33 +86,35 @@ static void test_tcpros() {
 }
 
 static void test_msgs() {
+  assert(strcmp(rosc_sensor_msgs_LaserScan.md5sum, "90c7ef2dc6895d81024acba2ac42f369") == 0);
+  assert(strstr(rosc_geometry_msgs_Twist.definition, "MSG: geometry_msgs/Vector3") != nullptr);
   uint8_t buf[256];
-  size_t n = rosc_serialize_string("hi", 2, buf, sizeof(buf));
+  size_t n = rosc_serialize_std_msgs_String("hi", 2, buf, sizeof(buf));
   const char* s;
   size_t len;
-  assert(n == 6 && rosc_deserialize_string(buf, n, &s, &len) && len == 2 && memcmp(s, "hi", 2) == 0);
-  assert(!rosc_deserialize_string(buf, n - 1, &s, &len));
-  assert(rosc_serialize_string("hi", 2, buf, 3) == 6);
+  assert(n == 6 && rosc_deserialize_std_msgs_String(buf, n, &s, &len) && len == 2 && memcmp(s, "hi", 2) == 0);
+  assert(!rosc_deserialize_std_msgs_String(buf, n - 1, &s, &len));
+  assert(rosc_serialize_std_msgs_String("hi", 2, buf, 3) == 6);
 
-  rosc_twist_t t = {{1, 2, 3}, {4, 5, 6}}, t2;
-  n = rosc_serialize_twist(&t, buf, sizeof(buf));
-  assert(n == 48 && rosc_deserialize_twist(buf, n, &t2) && t2.linear[1] == 2 && t2.angular[2] == 6);
+  rosc_geometry_msgs_Twist_t t = {{1, 2, 3}, {4, 5, 6}}, t2;
+  n = rosc_serialize_geometry_msgs_Twist(&t, buf, sizeof(buf));
+  assert(n == 48 && rosc_deserialize_geometry_msgs_Twist(buf, n, &t2) && t2.linear[1] == 2 && t2.angular[2] == 6);
 
   float r[3] = {1.f, 2.f, 3.f};
-  rosc_laser_scan_t sc{}, sc2;
+  rosc_sensor_msgs_LaserScan_t sc{}, sc2;
   sc.seq = 9;
   sc.frame_id = "laser";
   sc.frame_id_len = 5;
   sc.angle_max = 1.5f;
   sc.ranges = r;
   sc.ranges_len = 3;
-  n = rosc_serialize_laser_scan(&sc, buf, sizeof(buf));
+  n = rosc_serialize_sensor_msgs_LaserScan(&sc, buf, sizeof(buf));
   assert(n == 12 + 4 + 5 + 28 + 4 + 12 + 4);
-  assert(rosc_deserialize_laser_scan(buf, n, &sc2));
+  assert(rosc_deserialize_sensor_msgs_LaserScan(buf, n, &sc2));
   assert(sc2.seq == 9 && sc2.frame_id_len == 5 && sc2.angle_max == 1.5f && sc2.ranges_len == 3);
   assert(rosc_float_at(sc2.ranges, 2) == 3.f && sc2.intensities_len == 0);
   buf[n - 4] = 0xff;  // intensities length larger than the buffer
-  assert(!rosc_deserialize_laser_scan(buf, n, &sc2));
+  assert(!rosc_deserialize_sensor_msgs_LaserScan(buf, n, &sc2));
 }
 
 int main() {

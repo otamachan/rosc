@@ -20,8 +20,8 @@ server, UDPROS, IPv6. Linux and macOS.
 #include <rosc/rosc.h>
 
 static void on_scan(const void* data, size_t size, const rosc_msg_info_t* info, void* user) {
-  rosc_laser_scan_t scan;
-  if (rosc_deserialize_laser_scan(data, size, &scan) && scan.ranges_len > 0)
+  rosc_sensor_msgs_LaserScan_t scan;
+  if (rosc_deserialize_sensor_msgs_LaserScan(data, size, &scan) && scan.ranges_len > 0)
     printf("first range: %f\n", rosc_float_at(scan.ranges, 0));
 }
 
@@ -33,17 +33,17 @@ int main(int argc, char** argv) {
   rosc_pub_t* pub;
   rosc_sub_t* sub;
   if (rosc_node_create("teleop", &opts, &node) != ROSC_OK ||
-      rosc_advertise(node, "cmd_vel", ROSC_GEOMETRY_MSGS_TWIST_TYPE, ROSC_GEOMETRY_MSGS_TWIST_MD5,
-                     ROSC_GEOMETRY_MSGS_TWIST_DEF, 1, false, &pub) != ROSC_OK ||
-      rosc_subscribe(node, "scan", ROSC_SENSOR_MSGS_LASER_SCAN_TYPE, ROSC_SENSOR_MSGS_LASER_SCAN_MD5,
+      rosc_advertise(node, "cmd_vel", rosc_geometry_msgs_Twist.type, rosc_geometry_msgs_Twist.md5sum,
+                     rosc_geometry_msgs_Twist.definition, 1, false, &pub) != ROSC_OK ||
+      rosc_subscribe(node, "scan", rosc_sensor_msgs_LaserScan.type, rosc_sensor_msgs_LaserScan.md5sum,
                      1, on_scan, NULL, &sub) != ROSC_OK) {
     fprintf(stderr, "rosc: %s\n", rosc_last_error());
     return 1;
   }
   while (rosc_spin_once(node, 100) == ROSC_OK) {
-    rosc_twist_t twist = {{0.1, 0, 0}, {0, 0, 0}};
+    rosc_geometry_msgs_Twist_t twist = {{0.1, 0, 0}, {0, 0, 0}};
     uint8_t buf[48];
-    rosc_publish(pub, buf, rosc_serialize_twist(&twist, buf, sizeof(buf)));
+    rosc_publish(pub, buf, rosc_serialize_geometry_msgs_Twist(&twist, buf, sizeof(buf)));
   }
   rosc_node_destroy(node);
 }

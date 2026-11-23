@@ -14,8 +14,8 @@ endif()
 find_package(Threads REQUIRED)
 include(GNUInstallDirs)
 
-add_library(rosc_objects OBJECT src/io_loop.cpp src/net.cpp src/node.cpp src/tcpros.cpp src/xmlrpc.cpp)
-set_target_properties(rosc_objects PROPERTIES POSITION_INDEPENDENT_CODE ON CXX_VISIBILITY_PRESET hidden)
+add_library(rosc_objects OBJECT src/io_loop.cpp src/msgs.c src/net.cpp src/node.cpp src/tcpros.cpp src/xmlrpc.cpp)
+set_target_properties(rosc_objects PROPERTIES POSITION_INDEPENDENT_CODE ON C_VISIBILITY_PRESET hidden CXX_VISIBILITY_PRESET hidden)
 target_include_directories(rosc_objects PUBLIC include)
 target_compile_options(rosc_objects PRIVATE -Wall -Wextra)
 

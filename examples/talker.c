@@ -35,11 +35,11 @@ int main(int argc, char** argv) {
   }
   const char *type, *md5, *def;
   if (strcmp(kind, "twist") == 0) {
-    type = ROSC_GEOMETRY_MSGS_TWIST_TYPE, md5 = ROSC_GEOMETRY_MSGS_TWIST_MD5, def = ROSC_GEOMETRY_MSGS_TWIST_DEF;
+    type = rosc_geometry_msgs_Twist.type, md5 = rosc_geometry_msgs_Twist.md5sum, def = rosc_geometry_msgs_Twist.definition;
   } else if (strcmp(kind, "scan") == 0) {
-    type = ROSC_SENSOR_MSGS_LASER_SCAN_TYPE, md5 = ROSC_SENSOR_MSGS_LASER_SCAN_MD5, def = ROSC_SENSOR_MSGS_LASER_SCAN_DEF;
+    type = rosc_sensor_msgs_LaserScan.type, md5 = rosc_sensor_msgs_LaserScan.md5sum, def = rosc_sensor_msgs_LaserScan.definition;
   } else {
-    type = ROSC_STD_MSGS_STRING_TYPE, md5 = ROSC_STD_MSGS_STRING_MD5, def = ROSC_STD_MSGS_STRING_DEF;
+    type = rosc_std_msgs_String.type, md5 = rosc_std_msgs_String.md5sum, def = rosc_std_msgs_String.definition;
   }
   rosc_pub_t* pub;
   if (rosc_advertise(node, argv[1], type, md5, def, 10, latch, &pub) != ROSC_OK) {
@@ -52,22 +52,22 @@ int main(int argc, char** argv) {
   for (int i = 0; (count <= 0 || i < count) && !g_stop && rosc_ok(node); i++) {
     size_t n;
     if (strcmp(kind, "twist") == 0) {
-      rosc_twist_t t = {{0.5, 0, 0}, {0, 0, 0.25 * i}};
-      n = rosc_serialize_twist(&t, buf, sizeof(buf));
+      rosc_geometry_msgs_Twist_t t = {{0.5, 0, 0}, {0, 0, 0.25 * i}};
+      n = rosc_serialize_geometry_msgs_Twist(&t, buf, sizeof(buf));
     } else if (strcmp(kind, "scan") == 0) {
       float ranges[5] = {1.0f, 1.5f, 2.0f, 2.5f, (float)i};
-      rosc_laser_scan_t s = {0};
+      rosc_sensor_msgs_LaserScan_t s = {0};
       s.seq = (uint32_t)i;
       s.frame_id = "laser";
       s.frame_id_len = 5;
       s.angle_min = -1.0f, s.angle_max = 1.0f, s.angle_increment = 0.5f, s.range_min = 0.1f, s.range_max = 10.0f;
       s.ranges = ranges;
       s.ranges_len = 5;
-      n = rosc_serialize_laser_scan(&s, buf, sizeof(buf));
+      n = rosc_serialize_sensor_msgs_LaserScan(&s, buf, sizeof(buf));
     } else {
       char text[64];
       int len = snprintf(text, sizeof(text), "hello from rosc %d", i);
-      n = rosc_serialize_string(text, (size_t)len, buf, sizeof(buf));
+      n = rosc_serialize_std_msgs_String(text, (size_t)len, buf, sizeof(buf));
     }
     rosc_publish(pub, buf, n);
     rosc_spin_once(node, 100);
