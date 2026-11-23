@@ -42,10 +42,10 @@ int main(int argc, char** argv) {
   }
   const char* kind = argv[2];
   int count = argc > 3 ? atoi(argv[3]) : 1;
-  const char *type = "*", *md5 = "*";
-  if (strcmp(kind, "string") == 0) type = rosc_std_msgs_String.type, md5 = rosc_std_msgs_String.md5sum;
-  if (strcmp(kind, "twist") == 0) type = rosc_geometry_msgs_Twist.type, md5 = rosc_geometry_msgs_Twist.md5sum;
-  if (strcmp(kind, "scan") == 0) type = rosc_sensor_msgs_LaserScan.type, md5 = rosc_sensor_msgs_LaserScan.md5sum;
+  const rosc_msg_type_t* type = NULL; /* any */
+  if (strcmp(kind, "string") == 0) type = &rosc_std_msgs_String;
+  if (strcmp(kind, "twist") == 0) type = &rosc_geometry_msgs_Twist;
+  if (strcmp(kind, "scan") == 0) type = &rosc_sensor_msgs_LaserScan;
 
   rosc_node_options_t opts = {0};
   opts.args = (const char* const*)argv;
@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "node: %s\n", rosc_last_error());
     return 1;
   }
-  if (rosc_subscribe(node, argv[1], type, md5, 10, on_msg, (void*)kind, &sub) != ROSC_OK) {
+  if (rosc_subscribe(node, argv[1], type, 10, on_msg, (void*)kind, &sub) != ROSC_OK) {
     fprintf(stderr, "subscribe: %s\n", rosc_last_error());
     rosc_node_destroy(node);
     return 1;

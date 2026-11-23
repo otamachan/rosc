@@ -12,13 +12,6 @@
 extern "C" {
 #endif
 
-/* Type name, md5sum and full definition, as passed to rosc_advertise / rosc_subscribe. */
-typedef struct {
-  const char* type;
-  const char* md5sum;
-  const char* definition;
-} rosc_msg_type_t;
-
 ROSC_API extern const rosc_msg_type_t rosc_std_msgs_String;
 ROSC_API extern const rosc_msg_type_t rosc_geometry_msgs_Twist;
 ROSC_API extern const rosc_msg_type_t rosc_sensor_msgs_LaserScan;

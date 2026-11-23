@@ -7,7 +7,7 @@ dependencies beyond the C++17 standard library and POSIX sockets. Messages are p
 bytes; `rosc/msgs.h` has header-only helpers for `std_msgs/String`, `geometry_msgs/Twist` and
 `sensor_msgs/LaserScan`.
 
-Supported: topics (publish, subscribe, `"*"` type, latching), `ROS_MASTER_URI` / `ROS_IP` /
+Supported: topics (publish, subscribe to any type, latching), `ROS_MASTER_URI` / `ROS_IP` /
 `ROS_HOSTNAME` / `ROS_NAMESPACE`, `from:=to` remapping. Not supported: services, the parameter
 server, UDPROS, IPv6. Linux and macOS.
 
@@ -33,10 +33,8 @@ int main(int argc, char** argv) {
   rosc_pub_t* pub;
   rosc_sub_t* sub;
   if (rosc_node_create("teleop", &opts, &node) != ROSC_OK ||
-      rosc_advertise(node, "cmd_vel", rosc_geometry_msgs_Twist.type, rosc_geometry_msgs_Twist.md5sum,
-                     rosc_geometry_msgs_Twist.definition, 1, false, &pub) != ROSC_OK ||
-      rosc_subscribe(node, "scan", rosc_sensor_msgs_LaserScan.type, rosc_sensor_msgs_LaserScan.md5sum,
-                     1, on_scan, NULL, &sub) != ROSC_OK) {
+      rosc_advertise(node, "cmd_vel", &rosc_geometry_msgs_Twist, 1, false, &pub) != ROSC_OK ||
+      rosc_subscribe(node, "scan", &rosc_sensor_msgs_LaserScan, 1, on_scan, NULL, &sub) != ROSC_OK) {
     fprintf(stderr, "rosc: %s\n", rosc_last_error());
     return 1;
   }

@@ -167,13 +167,13 @@ rosc_status rosc_spin_once(rosc_node_t* n, int timeout_ms) {
   return ROSC_OK;
 }
 
-rosc_status rosc_advertise(rosc_node_t* n, const char* topic, const char* type, const char* md5sum,
-                           const char* msg_def, int queue_size, bool latch, rosc_pub_t** out) {
-  if (!n || !topic || !*topic || !type || !*type || !md5sum || !*md5sum || !out)
-    return err(ROSC_ERR_INVALID_ARG, "node, topic, type, md5sum and out are required");
+rosc_status rosc_advertise(rosc_node_t* n, const char* topic, const rosc_msg_type_t* t, int queue_size, bool latch,
+                           rosc_pub_t** out) {
+  if (!n || !topic || !*topic || !t || !t->type || !*t->type || !t->md5sum || !*t->md5sum || !out)
+    return err(ROSC_ERR_INVALID_ARG, "node, topic, type (with type and md5sum) and out are required");
   if (n->shut) return err(ROSC_ERR_SHUTDOWN, "node is shut down");
   auto p = std::make_unique<rosc_pub>();
-  *p = rosc_pub{n, resolve(n, topic), type, md5sum, msg_def ? msg_def : "", queue_size, latch, nullptr};
+  *p = rosc_pub{n, resolve(n, topic), t->type, t->md5sum, t->definition ? t->definition : "", queue_size, latch, nullptr};
   rosc_pub* raw = p.get();
   {
     std::lock_guard<std::mutex> lk(n->mu);
@@ -231,16 +231,16 @@ void rosc_unadvertise(rosc_pub_t* p) {
   n->wake_io();
 }
 
-rosc_status rosc_subscribe(rosc_node_t* n, const char* topic, const char* type, const char* md5sum, int queue_size,
-                           rosc_sub_cb cb, void* user, rosc_sub_t** out) {
-  if (!n || !topic || !*topic || !type || !*type || !md5sum || !*md5sum || !cb || !out)
-    return err(ROSC_ERR_INVALID_ARG, "node, topic, type, md5sum, cb and out are required");
+rosc_status rosc_subscribe(rosc_node_t* n, const char* topic, const rosc_msg_type_t* t, int queue_size, rosc_sub_cb cb,
+                           void* user, rosc_sub_t** out) {
+  if (!n || !topic || !*topic || (t && (!t->type || !*t->type || !t->md5sum || !*t->md5sum)) || !cb || !out)
+    return err(ROSC_ERR_INVALID_ARG, "node, topic, cb and out are required; type needs type and md5sum");
   if (n->shut) return err(ROSC_ERR_SHUTDOWN, "node is shut down");
   auto s = std::make_shared<rosc_sub>();
   s->node = n;
   s->topic = resolve(n, topic);
-  s->type = type;
-  s->md5sum = md5sum;
+  s->type = t ? t->type : "*";
+  s->md5sum = t ? t->md5sum : "*";
   s->queue_size = queue_size;
   s->cb = cb;
   s->user = user;

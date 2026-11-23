@@ -33,16 +33,11 @@ int main(int argc, char** argv) {
     fprintf(stderr, "node: %s\n", rosc_last_error());
     return 1;
   }
-  const char *type, *md5, *def;
-  if (strcmp(kind, "twist") == 0) {
-    type = rosc_geometry_msgs_Twist.type, md5 = rosc_geometry_msgs_Twist.md5sum, def = rosc_geometry_msgs_Twist.definition;
-  } else if (strcmp(kind, "scan") == 0) {
-    type = rosc_sensor_msgs_LaserScan.type, md5 = rosc_sensor_msgs_LaserScan.md5sum, def = rosc_sensor_msgs_LaserScan.definition;
-  } else {
-    type = rosc_std_msgs_String.type, md5 = rosc_std_msgs_String.md5sum, def = rosc_std_msgs_String.definition;
-  }
+  const rosc_msg_type_t* type = strcmp(kind, "twist") == 0  ? &rosc_geometry_msgs_Twist
+                                : strcmp(kind, "scan") == 0 ? &rosc_sensor_msgs_LaserScan
+                                                            : &rosc_std_msgs_String;
   rosc_pub_t* pub;
-  if (rosc_advertise(node, argv[1], type, md5, def, 10, latch, &pub) != ROSC_OK) {
+  if (rosc_advertise(node, argv[1], type, 10, latch, &pub) != ROSC_OK) {
     fprintf(stderr, "advertise: %s\n", rosc_last_error());
     rosc_node_destroy(node);
     return 1;

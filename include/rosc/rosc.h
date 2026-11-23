@@ -30,6 +30,13 @@ typedef struct rosc_node rosc_node_t;
 typedef struct rosc_pub rosc_pub_t;
 typedef struct rosc_sub rosc_sub_t;
 
+/* Type name, md5sum and full definition of a message type. */
+typedef struct {
+  const char* type;
+  const char* md5sum;
+  const char* definition;  /* may be NULL */
+} rosc_msg_type_t;
+
 typedef struct {
   const char* master_uri;  /* NULL: ROS_MASTER_URI */
   const char* host;        /* NULL: ROS_HOSTNAME, ROS_IP, then gethostname() */
@@ -41,7 +48,7 @@ typedef struct {
   int master_timeout_ms;   /* 0: 5000 */
 } rosc_node_options_t;
 
-/* The publisher's side of a received message (useful with type "*"). */
+/* The publisher's side of a received message (useful when subscribed with type NULL). */
 typedef struct {
   const char* topic;
   const char* type;
@@ -65,16 +72,16 @@ ROSC_API bool rosc_ok(const rosc_node_t* node);
 ROSC_API rosc_status rosc_spin_once(rosc_node_t* node, int timeout_ms);
 ROSC_API const char* rosc_node_name(const rosc_node_t* node);
 
-/* msg_def may be NULL. queue_size <= 0 means unbounded. Blocks while registering. */
-ROSC_API rosc_status rosc_advertise(rosc_node_t* node, const char* topic, const char* type, const char* md5sum,
-                                    const char* msg_def, int queue_size, bool latch, rosc_pub_t** out);
+/* queue_size <= 0 means unbounded. Blocks while registering. */
+ROSC_API rosc_status rosc_advertise(rosc_node_t* node, const char* topic, const rosc_msg_type_t* type,
+                                    int queue_size, bool latch, rosc_pub_t** out);
 /* Thread safe. data is serialized message bytes; copied before returning. */
 ROSC_API rosc_status rosc_publish(rosc_pub_t* pub, const void* data, size_t size);
 ROSC_API int rosc_pub_num_subscribers(const rosc_pub_t* pub);
 ROSC_API void rosc_unadvertise(rosc_pub_t* pub);
 
-/* type and md5sum may be "*". queue_size <= 0 means unbounded. Blocks while registering. */
-ROSC_API rosc_status rosc_subscribe(rosc_node_t* node, const char* topic, const char* type, const char* md5sum,
+/* type NULL accepts any type. queue_size <= 0 means unbounded. Blocks while registering. */
+ROSC_API rosc_status rosc_subscribe(rosc_node_t* node, const char* topic, const rosc_msg_type_t* type,
                                     int queue_size, rosc_sub_cb cb, void* user, rosc_sub_t** out);
 /* Waits for a running callback of this subscription to finish (may be called from inside it). */
 ROSC_API void rosc_unsubscribe(rosc_sub_t* sub);
